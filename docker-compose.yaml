@@ -1,0 +1,38 @@
+version: '3'
+services:
+  healthchecks:
+    image: healthcheck-test
+    ports:
+      - 8080:8080
+    environment:
+      ConnectionStrings__MSSQL_DATABASE: 'Data Source=sqlserver;User ID=sa;Password=master.007,01;TrustServerCertificate=true; MultipleActiveResultSets=true;Pooling=true;'
+      ConnectionStrings__REDIS_CACHE: 'cache:6379,password=eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81'
+    depends_on:
+      - sqlserver
+      - cache
+    networks:
+      - backend
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    ports:
+      - 1433:1433
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "master.007,01"
+    networks:
+      - backend
+  cache:
+    image: redis:latest
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning --requirepass eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
+    volumes: 
+      - cache:/data
+    networks:
+      - backend
+networks:
+  backend:
+volumes:
+  cache:
+    driver: local
